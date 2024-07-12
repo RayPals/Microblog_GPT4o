@@ -1,152 +1,134 @@
 let token = '';
 
 function register() {
-    const username = document.getElementById('register-username').value;
-    const password = document.getElementById('register-password').value;
+    const username = $('#register-username').val();
+    const password = $('#register-password').val();
 
-    fetch('http://localhost:3000/register', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => alert(data.message));
-}
-
-function login() {
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
-    fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ username, password })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.token) {
-            token = data.token;
-            document.querySelector('.auth-forms').style.display = 'none';
-            document.querySelector('.post-form').style.display = 'flex';
-            loadPosts();
-        } else {
+    $.ajax({
+        url: 'http://localhost:3000/register',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ username, password }),
+        success: function(data) {
             alert(data.message);
         }
     });
 }
 
+function login() {
+    const username = $('#login-username').val();
+    const password = $('#login-password').val();
+
+    $.ajax({
+        url: 'http://localhost:3000/login',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ username, password }),
+        success: function(data) {
+            if (data.token) {
+                token = data.token;
+                $('.auth-forms').hide();
+                $('.post-form').show();
+                loadPosts();
+            } else {
+                alert(data.message);
+            }
+        }
+    });
+}
+
 function createPost() {
-    const content = document.getElementById('post-content').value;
+    const content = $('#post-content').val();
     if (content.trim() === '') {
         alert('Post content cannot be empty!');
         return;
     }
 
-    fetch('http://localhost:3000/posts', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token, content })
-    })
-    .then(response => response.json())
-    .then(post => {
-        addPostToFeed(post);
-        document.getElementById('post-content').value = '';
+    $.ajax({
+        url: 'http://localhost:3000/posts',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ token, content }),
+        success: function(post) {
+            addPostToFeed(post);
+            $('#post-content').val('');
+        }
     });
 }
 
 function loadPosts() {
-    fetch('http://localhost:3000/posts')
-    .then(response => response.json())
-    .then(posts => {
-        const feed = document.getElementById('feed');
-        feed.innerHTML = '';
-        posts.forEach(post => addPostToFeed(post));
+    $.ajax({
+        url: 'http://localhost:3000/posts',
+        type: 'GET',
+        success: function(posts) {
+            const feed = $('#feed');
+            feed.empty();
+            $.each(posts, function(index, post) {
+                addPostToFeed(post);
+            });
+        }
     });
 }
 
 function addPostToFeed(post) {
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post';
+    const postDiv = $('<div>').addClass('post');
+    const postContent = $('<div>').addClass('content').text(post.content);
+    const postTimestamp = $('<div>').addClass('timestamp').text(new Date(post.timestamp).toLocaleString());
 
-    const postContent = document.createElement('div');
-    postContent.className = 'content';
-    postContent.textContent = post.content;
-
-    const postTimestamp = document.createElement('div');
-    postTimestamp.className = 'timestamp';
-    postTimestamp.textContent = new Date(post.timestamp).toLocaleString();
-
-    const commentsDiv = document.createElement('div');
-    commentsDiv.className = 'comments';
-    post.comments.forEach(comment => {
-        const commentDiv = document.createElement('div');
-        commentDiv.textContent = `${comment.userId.username}: ${comment.content}`;
-        commentsDiv.appendChild(commentDiv);
+    const commentsDiv = $('<div>').addClass('comments');
+    $.each(post.comments, function(index, comment) {
+        const commentDiv = $('<div>').text(comment.userId.username + ': ' + comment.content);
+        commentsDiv.append(commentDiv);
     });
 
-    const reactionsDiv = document.createElement('div');
-    reactionsDiv.className = 'reactions';
-    post.reactions.forEach(reaction => {
-        const reactionDiv = document.createElement('div');
-        reactionDiv.textContent = `${reaction.userId.username} reacted with ${reaction.reaction}`;
-        reactionsDiv.appendChild(reactionDiv);
+    const reactionsDiv = $('<div>').addClass('reactions');
+    $.each(post.reactions, function(index, reaction) {
+        const reactionDiv = $('<div>').text(reaction.userId.username + ' reacted with ' + reaction.reaction);
+        reactionsDiv.append(reactionDiv);
     });
 
-    const commentInput = document.createElement('input');
-    commentInput.placeholder = 'Add a comment...';
-    const commentButton = document.createElement('button');
-    commentButton.textContent = 'Comment';
-    commentButton.onclick = () => addComment(post._id, commentInput.value);
+    const commentInput = $('<input>').attr('placeholder', 'Add a comment...');
+    const commentButton = $('<button>').text('Comment').click(function() {
+        addComment(post._id, commentInput.val());
+    });
 
-    const reactionInput = document.createElement('input');
-    reactionInput.placeholder = 'Add a reaction...';
-    const reactionButton = document.createElement('button');
-    reactionButton.textContent = 'React';
-    reactionButton.onclick = () => addReaction(post._id, reactionInput.value);
+    const reactionInput = $('<input>').attr('placeholder', 'Add a reaction...');
+    const reactionButton = $('<button>').text('React').click(function() {
+        addReaction(post._id, reactionInput.val());
+    });
 
-    postDiv.appendChild(postContent);
-    postDiv.appendChild(postTimestamp);
-    postDiv.appendChild(commentsDiv);
-    postDiv.appendChild(reactionsDiv);
-    postDiv.appendChild(commentInput);
-    postDiv.appendChild(commentButton);
-    postDiv.appendChild(reactionInput);
-    postDiv.appendChild(reactionButton);
+    postDiv.append(postContent);
+    postDiv.append(postTimestamp);
+    postDiv.append(commentsDiv);
+    postDiv.append(reactionsDiv);
+    postDiv.append(commentInput);
+    postDiv.append(commentButton);
+    postDiv.append(reactionInput);
+    postDiv.append(reactionButton);
 
-    const feed = document.getElementById('feed');
-    feed.insertBefore(postDiv, feed.firstChild);
+    $('#feed').prepend(postDiv);
 }
 
 function addComment(postId, content) {
-    fetch('http://localhost:3000/comments', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token, postId, content })
-    })
-    .then(response => response.json())
-    .then(post => {
-        loadPosts();
+    $.ajax({
+        url: 'http://localhost:3000/comments',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ token, postId, content }),
+        success: function(post) {
+            loadPosts();
+        }
     });
 }
 
 function addReaction(postId, reaction) {
-    fetch('http://localhost:3000/reactions', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ token, postId, reaction })
-    })
-    .then(response => response.json())
-    .then(post => {
-        loadPosts();
+    $.ajax({
+        url: 'http://localhost:3000/reactions',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ token, postId, reaction }),
+        success: function(post) {
+            loadPosts();
+        }
     });
 }
