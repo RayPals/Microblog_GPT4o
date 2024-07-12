@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const postSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
+    image: { type: String },
     comments: [
         {
             userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -18,5 +19,8 @@ const postSchema = new mongoose.Schema({
     ],
     timestamp: { type: Date, default: Date.now }
 });
+
+// Ensure indexes are created
+postSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Post', postSchema);

@@ -39,19 +39,30 @@ function login() {
 
 function createPost() {
     const content = $('#post-content').val();
-    if (content.trim() === '') {
-        alert('Post content cannot be empty!');
+    const image = $('#post-image')[0].files[0];
+
+    if (content.trim() === '' && !image) {
+        alert('Post content or image cannot be empty!');
         return;
+    }
+
+    const formData = new FormData();
+    formData.append('token', token);
+    formData.append('content', content);
+    if (image) {
+        formData.append('image', image);
     }
 
     $.ajax({
         url: 'http://localhost:3000/posts',
         type: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ token, content }),
+        processData: false,
+        contentType: false,
+        data: formData,
         success: function(post) {
             addPostToFeed(post);
             $('#post-content').val('');
+            $('#post-image').val('');
         }
     });
 }
@@ -74,6 +85,11 @@ function addPostToFeed(post) {
     const postDiv = $('<div>').addClass('post');
     const postContent = $('<div>').addClass('content').text(post.content);
     const postTimestamp = $('<div>').addClass('timestamp').text(new Date(post.timestamp).toLocaleString());
+
+    if (post.image) {
+        const postImage = $('<img>').attr('src', 'http://localhost:3000/uploads/' + post.image).addClass('post-image');
+        postDiv.append(postImage);
+    }
 
     const commentsDiv = $('<div>').addClass('comments');
     $.each(post.comments, function(index, comment) {

@@ -1,3 +1,9 @@
+process.emitWarning = (warning, type, code, ...args) => {
+    if (code !== 'DeprecationWarning') {
+        console.warn(warning, type, code, ...args);
+    }
+};
+
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -5,6 +11,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+const multer = require('multer');
 
 const app = express();
 app.use(bodyParser.json());
@@ -13,7 +20,21 @@ app.use(cors());
 const User = require('./models/User');
 const Post = require('./models/Post');
 
-mongoose.connect('mongodb://localhost:27017/microblogging');
+// Configure Multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public/uploads');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
+
+mongoose.connect('mongodb://localhost:27017/microblogging', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -36,10 +57,15 @@ app.post('/login', async (req, res) => {
     res.json({ token });
 });
 
-app.post('/posts', async (req, res) => {
+app.post('/posts', upload.single('image'), async (req, res) => {
     const { token, content } = req.body;
     const { userId } = jwt.verify(token, 'SECRET_KEY');
     const post = new Post({ userId, content });
+
+    if (req.file) {
+        post.image = req.file.filename;
+    }
+
     await post.save();
     res.json(post);
 });
