@@ -1,9 +1,3 @@
-process.emitWarning = (warning, type, code, ...args) => {
-    if (code !== 'DeprecationWarning') {
-        console.warn(warning, type, code, ...args);
-    }
-};
-
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -19,6 +13,7 @@ app.use(cors());
 
 const User = require('./models/User');
 const Post = require('./models/Post');
+const Message = require('./models/message');
 
 // Configure Multer for file uploads
 const storage = multer.diskStorage({
@@ -88,13 +83,103 @@ app.post('/comments', async (req, res) => {
     res.json(post);
 });
 
-app.post('/reactions', async (req, res) => {
-    const { token, postId, reaction } = req.body;
+app.post('/likes', async (req, res) => {
+    const { token, postId } = req.body;
     const { userId } = jwt.verify(token, 'SECRET_KEY');
     const post = await Post.findById(postId);
-    post.reactions.push({ userId, reaction });
+
+    if (post.likes.includes(userId)) {
+        post.likes.pull(userId);
+    } else {
+        post.likes.push(userId);
+    }
+
     await post.save();
     res.json(post);
+});
+
+app.post('/updateProfile', upload.single('profilePicture'), async (req, res) => {
+    const { token, username, bio } = req.body;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const user = await User.findById(userId);
+
+    if (req.file) {
+        user.profilePicture = req.file.filename;
+    }
+    if (username) {
+        user.username = username;
+    }
+    if (bio) {
+        user.bio = bio;
+    }
+
+    await user.save();
+    res.json(user);
+});
+
+app.get('/profile/:username', async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.params.username });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        const posts = await Post.find({ userId: user._id }).populate('userId', 'username');
+        res.json({ user, posts });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.get('/users', async (req, res) => {
+    try {
+        const users = await User.find().select('username profilePicture bio');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+app.post('/addFriend', async (req, res) => {
+    const { token, friendId } = req.body;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const user = await User.findById(userId);
+    if (!user.friends.includes(friendId)) {
+        user.friends.push(friendId);
+        await user.save();
+    }
+    res.json(user);
+});
+
+app.post('/removeFriend', async (req, res) => {
+    const { token, friendId } = req.body;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const user = await User.findById(userId);
+    if (user.friends.includes(friendId)) {
+        user.friends.pull(friendId);
+        await user.save();
+    }
+    res.json(user);
+});
+
+// Messaging system
+app.post('/sendMessage', async (req, res) => {
+    const { token, recipientId, content } = req.body;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const message = new Message({ sender: userId, recipient: recipientId, content });
+    await message.save();
+    res.json(message);
+});
+
+app.get('/inbox', async (req, res) => {
+    const { token } = req.query;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const messages = await Message.find({ recipient: userId }).populate('sender', 'username');
+    res.json(messages);
+});
+
+app.get('/sent', async (req, res) => {
+    const { token } = req.query;
+    const { userId } = jwt.verify(token, 'SECRET_KEY');
+    const messages = await Message.find({ sender: userId }).populate('recipient', 'username');
+    res.json(messages);
 });
 
 app.listen(3000, () => console.log('Server running on port 3000'));
