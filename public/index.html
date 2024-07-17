@@ -3,33 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <title>Microblogging Social Network</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" style="display: none;">
+        <a class="navbar-brand" href="#">Microblog</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showFeed()">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showCurrentUserProfile()">Profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showPeople()">People</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showMessages()">Messages</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSettings()">Settings</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="logout()">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
     <div class="container">
-        <h1>Microblogging Social Network</h1>
-        <div class="auth-forms">
-            <div class="login-form">
+        <h1 class="text-center my-4">Microblogging Social Network</h1>
+        <div class="auth-forms row">
+            <div class="login-form col-md-6">
                 <h2>Login</h2>
-                <input type="text" id="login-username" placeholder="Username">
-                <input type="password" id="login-password" placeholder="Password">
-                <button onclick="login()">Login</button>
+                <input type="text" id="login-username" class="form-control" placeholder="Username">
+                <input type="password" id="login-password" class="form-control" placeholder="Password">
+                <button class="btn btn-primary btn-block mt-2" onclick="login()">Login</button>
             </div>
-            <div class="register-form">
+            <div class="register-form col-md-6">
                 <h2>Register</h2>
-                <input type="text" id="register-username" placeholder="Username">
-                <input type="password" id="register-password" placeholder="Password">
-                <button onclick="register()">Register</button>
+                <input type="text" id="register-username" class="form-control" placeholder="Username">
+                <input type="password" id="register-password" class="form-control" placeholder="Password">
+                <button class="btn btn-success btn-block mt-2" onclick="register()">Register</button>
             </div>
         </div>
-        <div class="post-form" style="display:none;">
-            <textarea id="post-content" placeholder="What's on your mind?"></textarea>
-            <input type="file" id="post-image">
-            <button onclick="createPost()">Post</button>
+        <div class="post-form mt-4" style="display:none;">
+            <textarea id="post-content" class="form-control" placeholder="What's on your mind?" rows="3"></textarea>
+            <input type="file" id="post-image" class="form-control-file mt-2">
+            <button class="btn btn-primary btn-block mt-2" onclick="createPost()">Post</button>
         </div>
-        <div id="feed">
+        <div id="feed" class="mt-4" style="display: none;">
             <!-- Posts will appear here -->
+        </div>
+        <div id="profile" class="mt-4" style="display: none;">
+            <!-- User profile will appear here -->
+            <div class="user-info"></div>
+            <div class="user-posts"></div>
+        </div>
+        <div id="settings" class="mt-4" style="display: none;">
+            <h2>Settings</h2>
+            <form id="settings-form">
+                <div class="form-group">
+                    <label for="settings-username">Username</label>
+                    <input type="text" id="settings-username" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="settings-bio">Bio</label>
+                    <textarea id="settings-bio" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="settings-profile-picture">Profile Picture</label>
+                    <input type="file" id="settings-profile-picture" class="form-control-file">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="updateSettings()">Update</button>
+            </form>
+        </div>
+        <div id="people" class="mt-4" style="display: none;">
+            <h2>People</h2>
+            <div id="people-list">
+                <!-- People list will appear here -->
+            </div>
+        </div>
+        <div id="messages" class="mt-4" style="display: none;">
+            <h2>Messages</h2>
+            <ul class="nav nav-tabs" id="messageTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="inbox-tab" data-toggle="tab" href="#inbox" role="tab" aria-controls="inbox" aria-selected="true">Inbox</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="sent-tab" data-toggle="tab" href="#sent" role="tab" aria-controls="sent" aria-selected="false">Sent</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="messageTabsContent">
+                <div class="tab-pane fade show active" id="inbox" role="tabpanel" aria-labelledby="inbox-tab">
+                    <div id="inbox-list">
+                        <!-- Inbox messages will appear here -->
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="sent" role="tabpanel" aria-labelledby="sent-tab">
+                    <div id="sent-list">
+                        <!-- Sent messages will appear here -->
+                    </div>
+                </div>
+            </div>
+            <div class="message-form mt-4">
+                <select id="recipient-select" class="form-control">
+                    <!-- Options will be populated dynamically -->
+                </select>
+                <textarea id="message-content" class="form-control mt-2" placeholder="Write a message..." rows="3"></textarea>
+                <button class="btn btn-primary btn-block mt-2" onclick="sendMessage()">Send</button>
+            </div>
         </div>
     </div>
     <script src="scripts.js"></script>

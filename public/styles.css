@@ -1,20 +1,20 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #f8f9fa;
     margin: 0;
     padding: 0;
 }
 
+.navbar {
+    margin-bottom: 20px;
+}
+
 .container {
-    width: 50%;
+    max-width: 800px;
     margin: 0 auto;
     padding: 20px;
     background-color: #fff;
-    border: 1px solid #ddd;
-}
-
-h1, h2 {
-    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .auth-forms {
@@ -23,7 +23,7 @@ h1, h2 {
 }
 
 .auth-forms div {
-    margin: 20px;
+    margin: 10px;
 }
 
 .post-form {
@@ -32,32 +32,12 @@ h1, h2 {
     margin-bottom: 20px;
 }
 
-#post-content {
-    width: 100%;
-    height: 100px;
-    margin-bottom: 10px;
-    padding: 10px;
-    font-size: 16px;
-}
-
-button {
-    padding: 10px;
-    font-size: 16px;
-    background-color: #007BFF;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #0056b3;
-}
-
 .post {
-    padding: 10px;
-    margin-bottom: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
     border: 1px solid #ddd;
     background-color: #fff;
+    border-radius: 5px;
 }
 
 .post .content {
@@ -74,6 +54,48 @@ button:hover {
     margin-top: 10px;
 }
 
-.post .reactions {
+.post-image {
+    max-width: 100%;
+    height: auto;
     margin-top: 10px;
+    border-radius: 5px;
+}
+
+.likes {
+    margin-top: 10px;
+}
+
+.user-info {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.user-posts .post {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+}
+
+#people-list .user {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#message-list .message {
+    padding: 15px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+.message-form {
+    margin-top: 20px;
 }
